@@ -22,6 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.model.InfoMessage;
@@ -34,32 +35,37 @@ public class MessageServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static int ID;
 	private Lock lock = new ReentrantLock();
-	
+	private static Logger logger = Logger.getLogger(MessageServlet.class.getName());
 
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		System.out.print("hi");
+		logger.info("intit have done.");
 		try {
-			System.out.print("hi");
 			loadHistory();
 		} catch (SAXException e) {
+			logger.error(e);
 			System.err.print(e);
 		} catch (IOException e) {
+			logger.error(e);
 			System.err.print(e);
 		} catch (ParserConfigurationException e) {
+			logger.error(e);
 			System.err.print(e);
 		} catch (TransformerException e) {
+			logger.error(e);
 			System.err.print(e);
 		}
 	}
 	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		logger.info("starte doPost");
 		String data = ServletUtil.getMessageBody(request);
 		try {
 			JSONObject json = stringToJson(data);
 			InfoMessage message = jsonToMessages(json);
+			logger.info(message.toJSONString());
 			lock.lock();
 			try {
 				message.setID(ID++);
@@ -68,23 +74,29 @@ public class MessageServlet extends HttpServlet {
 				lock.unlock();
 			}
 			System.out.println(message.toJSONString());
+			logger.info("doPost has done.");
 			try {
 				XMLHistoryUtil.addData(message);
 			} catch (ParserConfigurationException e) {
+				logger.error(e);
 				e.printStackTrace();
 			} catch (SAXException e) {
+				logger.error(e);
 				e.printStackTrace();
 			} catch (TransformerException e) {
+				logger.error(e);
 				e.printStackTrace();
 			}
 		} catch (ParseException e) {
-			System.err.println("Invalid user message: " + e.getMessage());	        
+			System.err.println("Invalid user message: " + e.getMessage());
+			logger.error(e);
 		}
 	}
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String token = request.getParameter(TOKEN);
+		logger.info("doGet");
 		try {
 			if (token != null && !"".equals(token)) {
 				int index = getIndex(token);
@@ -96,54 +108,70 @@ public class MessageServlet extends HttpServlet {
 				out.print(messages);
 				out.flush();
 			} else {
-				
+				logger.error("'token' parameter needed");
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "'token' parameter needed");
 			}
 		} catch (SAXException e) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,"error");
+			logger.error(e);
 		} catch (ParserConfigurationException e) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "error");
+			logger.error(e);
 		}
 	}
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
+		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
 			InfoMessage message = jsonToMessages(json);
 			message.setRequst("PUT");
+			logger.info(message.toJSONString());
 			try {
 				XMLHistoryUtil.updateData(message);
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (SAXException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (TransformerException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
+				logger.error(e);
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
 		String token = request.getParameter(TOKEN);
+		logger.info("Delete");
 		if (token != null && !"".equals(token)) {
 			int index = getIndex(token);
 			try {
 				XMLHistoryUtil.deleteDate(index);
+				logger.info("delete "+index);
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (SAXException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (IOException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (TransformerException e) {
 				e.printStackTrace();
+				logger.error(e);
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
+				logger.error(e);
 			}
 		}
 
@@ -172,12 +200,16 @@ public class MessageServlet extends HttpServlet {
 				XMLHistoryUtil.addData(task);
 			} catch (ParserConfigurationException e) {
 				System.err.print(e);
+				logger.error(e);
 			} catch (SAXException e) {
 				System.err.print(e);
+				logger.error(e);
 			} catch (IOException e) {
 				System.err.print(e);
+				logger.error(e);
 			} catch (TransformerException e) {
 				System.err.print(e);
+				logger.error(e);
 			}
 		}
 	}
