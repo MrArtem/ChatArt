@@ -1,0 +1,98 @@
+<html>
+<head>
+ <link rel="stylesheet" type="text/css" href="css\jquery-ui.css">
+ <link rel="stylesheet" type="text/css" href="css\style.css">
+ <link rel="stylesheet" type="text/css" href="css\bootstrap_2.3.2\bootstrap.css">
+ <script type="text/javascript" src="js\jquery-1.11.2.min.js"></script>
+ <script type="text/javascript" src="js\jquery-ui.min.js"></script>
+ <script src="js\javascript.js"></script>
+<title>Chat Art</title>
+
+<style>
+body {background: url(black2.jpg);}
+</style>
+</head>
+<body onload="run();"> 
+
+<div class="chat" id="ChatArt">
+<div id="header" class="uphead">
+  <h1 align="center" class="ChatArt"><big><strong><em>Chat Art</em><strong></big>
+</div>
+
+  <div id="content"> 
+    <div id="left" class="info">	
+        <div class="logout"> 
+         <button id="logOut"  type="button" class="btn btn-inverse">Log Out</button>
+        </div> 
+	      <div class="panel-heading">Name</div>
+	     <input id="name" type = "text" readonly="readonly" name = "firstname" placeholder="Name"><br>
+	     <div class="panel-heading">SurName</div>
+         <input id="surname" type = "text" readonly="readonly" name = "surname" placeholder="Surname"><br>
+	     <div class = "renameDiv"> 
+         <button id="rename"  type="button" class="btn btn-inverse">Rename</button>
+        </div>
+	</div>
+	
+    <div id="right" class="inforight">
+   
+	<div><input  id="server" type = "button" class="btn btn-success"></div>
+	</div>
+	
+    <div id="center" >
+	  <select id="allMessages"name = "messages"  class="message" multiple="multiple" size="15"></select>
+	  <div>
+        <textarea id="sendText" name = "message" class="sendmessage" placeholder="Message"></textarea>
+		 <input id="send" type = "submit"  value = "Send" class="btn btn-inverse">
+	  </div>
+	  <div>
+	    <input  id="delete" type = "submit"  value = "Delete" class="btn btn-inverse">
+	  </div>
+	</div>	
+  </div>
+</div> 
+
+ <div class="hiddenDiv" id="Login">
+<div>
+  <h2 style="color:white"><strong><b>ChatArt<b></strong></h2>
+</div>
+ <div class="infologin">
+  <div class="control-group">
+   <label class="control-label  colorTextLogin" for="inputName">Name</label>
+  <div class="controls">
+   <input type="text" id="inputName" placeholder="Name">
+ </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label colorTextLogin"  for="inputSurname">Surname</label>
+ <div class="controls">
+  <input type="text" id="inputSurName" placeholder="Surname">
+ </div>
+</div>
+
+ </div>
+</div>
+
+ <div class="hiddenDiv" id="RenameDiv">
+<div>
+  <h2 style="color:white"><strong><b>ChatArt<b></strong></h2>
+</div>
+ <div class="infologin">
+  <div class="control-group">
+   <label class="control-label  colorTextLogin" for="changeName">Name</label>
+  <div class="controls">
+   <input type="text" id="changeName" placeholder="Name">
+ </div>
+</div>
+
+<div class="control-group">
+  <label class="control-label colorTextLogin"  for="changeSurname">Surname</label>
+ <div class="controls">
+  <input type="text" id="changeSurname" placeholder="Surname">
+ </div>
+</div>
+ 
+ </div>
+</div>
+</body>
+</html>
