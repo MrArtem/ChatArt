@@ -51,7 +51,7 @@ function delegateEventSend(evtObj) {
             var sendMessage = messageOption(text.value, surname.value + " " + name.value, select.length);
 
             storeMessages(sendMessage, function () {
-            
+                document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
             });
            
             text.value = "";
@@ -69,12 +69,10 @@ function delegateEventSend(evtObj) {
             
             var changeMessage = messageOption(sendText.value, surname.value + " " + name.value, index);
             changeMessages(changeMessage, function () {
-            
             });
            
             select.selected = false;
             sendText.value = null;
-            document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
         }
     }
 }
@@ -147,6 +145,7 @@ function restoreMessages(continueWith) {
 
         continueWith && continueWith();
     });
+    document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
 }
 function updateMessages(continueWith) {
     var url = appState.mainUrl + '?token=' + appState.token;
