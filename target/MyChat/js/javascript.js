@@ -13,7 +13,7 @@ var infoLogin = function (name, surname) {
 };
 var appState = {
     mainUrl: 'chat',
-    token: 'TE11EN'
+    token: 'TE0EN'
 };
 var listForSaving = [];
 var deleteIconUtfCode = '\u2421';
@@ -27,6 +27,7 @@ function run() {
     var appContainerServer = document.getElementById('server');
 
     restoreMessages();
+    document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
     updateMessages();
 
     appContainerSend.addEventListener('click', delegateEventSend);
@@ -140,6 +141,7 @@ function restoreMessages(continueWith) {
     get(url, function (responseText) {
         console.assert(responseText != null);
         delegateEventServer();
+
         var response = JSON.parse(responseText).messages;
         createAllMessages(response);
 
@@ -153,6 +155,7 @@ function updateMessages(continueWith) {
     get(url, function (responseText) {
         console.assert(responseText != null);
         delegateEventServer();
+        appState.token = JSON.parse(responseText).token;
         var response = JSON.parse(responseText).messages;
         for (var i = 0; i < response.length; i++) {
             var message = response[i];
@@ -225,7 +228,7 @@ function changeMessages(changeMessage, continueWith) {
     });
 }
 function deleteMessage(index,continueWith) {
- var indexToken = index*8+11; 
+ var indexToken = index;
  var url = appState.mainUrl + '?token=' + "TN" +indexToken.toString() + "EN";
     del(url, function () {
 
@@ -362,17 +365,18 @@ function ajax(method, url, data, continueWith, continueWithError) {
     xhr.onload = function () {
         if (xhr.readyState !== 4)
             return;
+        if(xhr.status != 304) {
 
-        if (xhr.status != 200) {
-            continueWithError('Error on the server side, response ' + xhr.status);
-            return;
+            if (xhr.status != 200) {
+                continueWithError('Error on the server side, response ' + xhr.status);
+                return;
+            }
+
+            if (isError(xhr.responseText)) {
+                continueWithError('Error on the server side, response ' + xhr.responseText);
+                return;
+            }
         }
-
-        if (isError(xhr.responseText)) {
-            continueWithError('Error on the server side, response ' + xhr.responseText);
-            return;
-        }
-
         continueWith(xhr.responseText);
     };
 

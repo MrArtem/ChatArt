@@ -1,18 +1,10 @@
 package org.controller;
 
-import static org.util.MessageUtil.TASKS;
-import static org.util.MessageUtil.TOKEN;
-import static org.util.MessageUtil.getIndex;
-import static org.util.MessageUtil.getToken;
-import static org.util.MessageUtil.jsonToMessages;
-import static org.util.MessageUtil.stringToJson;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -30,17 +22,29 @@ import org.storage.xml.XMLHistoryUtil;
 import org.util.ServletUtil;
 import org.xml.sax.SAXException;
 
+import static org.util.MessageUtil.*;
+
 @WebServlet(value = "/chat", loadOnStartup = 1)
 public class MessageServlet extends HttpServlet {     
 	private static final long serialVersionUID = 1L;
 	private static int ID;
 	private Lock lock = new ReentrantLock();
+	private int isModifiedStorage = 0;
 	private static Logger logger = Logger.getLogger(MessageServlet.class.getName());
 
 	@Override
 	public void init() throws ServletException {
 		super.init();
 		logger.info("intit have done.");
+		try {
+			ID = XMLHistoryUtil.getStorageSize();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
 		try {
 			loadHistory();
 		} catch (SAXException e) {
@@ -70,6 +74,7 @@ public class MessageServlet extends HttpServlet {
 			try {
 				message.setID(ID++);
 				message.setRequst("POST");
+				isModifiedStorage++;
 			} finally {
 				lock.unlock();
 			}
@@ -100,13 +105,17 @@ public class MessageServlet extends HttpServlet {
 		try {
 			if (token != null && !"".equals(token)) {
 				int index = getIndex(token);
-				
-				String messages;
-				messages = formResponse(index);
-				response.setContentType(ServletUtil.APPLICATION_JSON);
-				PrintWriter out = response.getWriter();
-				out.print(messages);
-				out.flush();
+				if(isModifiedStorage == index && isModifiedStorage != 0) {
+					logger.info("GET - Response status: 304");
+					response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+				} else {
+					String messages;
+					messages = formResponse(0);//all messages
+					response.setContentType(ServletUtil.APPLICATION_JSON);
+					PrintWriter out = response.getWriter();
+					out.print(messages);
+					out.flush();
+				}
 			} else {
 				logger.error("'token' parameter needed");
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "'token' parameter needed");
@@ -130,6 +139,7 @@ public class MessageServlet extends HttpServlet {
 			logger.info(message.toJSONString());
 			try {
 				XMLHistoryUtil.updateData(message);
+				isModifiedStorage++;
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				logger.error(e);
@@ -156,6 +166,7 @@ public class MessageServlet extends HttpServlet {
 			int index = getIndex(token);
 			try {
 				XMLHistoryUtil.deleteDate(index);
+				isModifiedStorage++;
 				logger.info("delete "+index);
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
@@ -179,12 +190,11 @@ public class MessageServlet extends HttpServlet {
 	@SuppressWarnings("unchecked")
 	private String formResponse(int index) throws SAXException, IOException, ParserConfigurationException {
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put(TASKS, XMLHistoryUtil.getSubTasksByIndex(index));
-		ID = XMLHistoryUtil.getSubTasksByIndex(index).size();
-		jsonObject.put(TOKEN, getToken(XMLHistoryUtil.getStorageSize()));
+		jsonObject.put(MESSAGES, XMLHistoryUtil.getSubTasksByIndex(index));
+		jsonObject.put(TOKEN, getToken(isModifiedStorage));
 		return jsonObject.toJSONString();
 	}
-	
+
 	private void loadHistory() throws SAXException, IOException, ParserConfigurationException, TransformerException {
 		if (!XMLHistoryUtil.doesStorageExist()) { // creating storage and history if not exist
 			XMLHistoryUtil.createStorage();

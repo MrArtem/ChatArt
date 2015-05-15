@@ -110,7 +110,6 @@ public final class XMLHistoryUtil {
 				if (REQUST.equals(node.getNodeName())) {
 					node.setTextContent("DELETE");
 				}
-
 			}
 
 			Transformer transformer = getTransformer();

@@ -7,7 +7,7 @@ import org.model.InfoMessage;
 
 public final class MessageUtil {
 	public static final String TOKEN = "token";
-	public static final String TASKS = "messages";
+	public static final String MESSAGES = "messages";
 	private static final String TN = "TN";
 	private static final String EN = "EN";
 	private static final String ID = "id";
@@ -18,12 +18,12 @@ public final class MessageUtil {
 	}
 	
 	public static String getToken(int index) {
-		Integer number = index * 8 + 11;
+		Integer number = index;
 		return TN + number + EN;
 	}
 	
 	public static int getIndex(String token) {
-		return (Integer.valueOf(token.substring(2, token.length() - 2)) - 11) / 8;
+		return (Integer.valueOf(token.substring(2, token.length() - 2)));
 	}
 
 	public static JSONObject stringToJson(String data) throws ParseException {
