@@ -2,9 +2,15 @@ package org.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,13 +30,14 @@ import org.xml.sax.SAXException;
 
 import static org.util.MessageUtil.*;
 
-@WebServlet(value = "/chat", loadOnStartup = 1)
+@WebServlet(value = "/chat", loadOnStartup = 1, asyncSupported=true)
 public class MessageServlet extends HttpServlet {     
 	private static final long serialVersionUID = 1L;
 	private static int ID;
 	private Lock lock = new ReentrantLock();
 	private int isModifiedStorage = 0;
 	private static Logger logger = Logger.getLogger(MessageServlet.class.getName());
+	private final static Queue<AsyncContext> storage = new ConcurrentLinkedQueue<AsyncContext>();
 
 	@Override
 	public void init() throws ServletException {
@@ -98,7 +105,7 @@ public class MessageServlet extends HttpServlet {
 		}
 	}
 	
-	@Override
+	/*@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String token = request.getParameter(TOKEN);
 		logger.info("doGet");
@@ -127,7 +134,7 @@ public class MessageServlet extends HttpServlet {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "error");
 			logger.error(e);
 		}
-	}
+	}*/
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
@@ -227,5 +234,41 @@ public class MessageServlet extends HttpServlet {
 	public void destroy() {
 		System.out.print("Hi");
 		super.destroy();
+	}
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException {
+
+		System.out.println("Async Servlet with thread: " + Thread.currentThread().toString());
+		final AsyncContext ac = request.startAsync();
+		ac.addListener(new AsyncListener() {
+			public void onComplete(AsyncEvent event) throws IOException {
+				System.out.println("Async complete");
+				storage.remove(ac);
+			}
+
+			public void onTimeout(AsyncEvent event) throws IOException {
+				System.out.println("Timed out...");
+				storage.remove(ac);
+			}
+
+			public void onError(AsyncEvent event) throws IOException {
+				System.out.println("Error...");
+				storage.remove(ac);
+			}
+
+			public void onStartAsync(AsyncEvent event) throws IOException {
+				System.out.println("Starting async...");
+
+			}
+		});
+		ScheduledThreadPoolExecutor executer = new ScheduledThreadPoolExecutor(10);
+		if(getIndex(request.getParameter(TOKEN)) != isModifiedStorage || getIndex(request.getParameter(TOKEN)) == isModifiedStorage) {
+			executer.execute(new AsyncService(ac, isModifiedStorage));
+		} else {
+			storage.add(ac);
+		}
+		System.out.println("Servlet completed request handling");
+	}
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		processRequest(request, response);
 	}
 }
