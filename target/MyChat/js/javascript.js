@@ -80,6 +80,8 @@ function delegateEventSend(evtObj) {
 function delegateEventEnterMessage(evtObj) {
     if (evtObj.keyCode == "13") {
         delegateEventSend(evtObj)
+        var text = document.getElementById('sendText');
+        text.value = "";
     }
 }
 function delegateEventDelete(evtObj) {
