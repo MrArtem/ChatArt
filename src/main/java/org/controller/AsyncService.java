@@ -50,7 +50,7 @@ public class AsyncService implements Runnable {
                     out.close();
                 }
             }
-            aContext.complete();
+
         }
     }
     private String formResponse(int index) throws SAXException, IOException, ParserConfigurationException {

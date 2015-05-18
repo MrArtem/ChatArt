@@ -73,8 +73,7 @@ public class MessageServlet extends HttpServlet {
 		logger.info("starte doPost");
 		String data = ServletUtil.getMessageBody(request);
 		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
-		storage.clear();
-		removeAsContext(aContext);
+		removeAsContext();
 		try {
 			JSONObject json = stringToJson(data);
 			InfoMessage message = jsonToMessages(json);
@@ -145,9 +144,7 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
-		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
-		storage.clear();
-		removeAsContext(aContext);
+		removeAsContext();
 		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
@@ -179,8 +176,7 @@ public class MessageServlet extends HttpServlet {
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
 		String token = request.getParameter(TOKEN);
 		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
-		storage.clear();
-		removeAsContext(aContext);
+		removeAsContext();
 		logger.info("Delete");
 		if (token != null && !"".equals(token)) {
 			int index = getIndex(token);
@@ -282,8 +278,10 @@ public class MessageServlet extends HttpServlet {
 			if(index == 0 && isModifiedStorage == 0) {
 				isModifiedStorage++;
 				new AsyncService(ac, isModifiedStorage).run();
+				ac.complete();
 			} else {
 				new AsyncService(ac, isModifiedStorage).run();
+				ac.complete();
 			}
 
 		}
@@ -293,8 +291,8 @@ public class MessageServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		processRequest(request, response);
 	}
-	public void removeAsContext(Queue<AsyncContext> asyncContexts) {
-		for (AsyncContext asyncContext : asyncContexts) {
+	public void removeAsContext() {
+		for (AsyncContext asyncContext : storage) {
 			 new ScheduledThreadPoolExecutor(10).execute(new AsyncService(asyncContext, isModifiedStorage));
 			asyncContext.complete();
 			storage.remove(asyncContext);
