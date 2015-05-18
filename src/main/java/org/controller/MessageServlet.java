@@ -293,7 +293,7 @@ public class MessageServlet extends HttpServlet {
 	}
 	public void removeAsContext() {
 		for (AsyncContext asyncContext : storage) {
-			 new ScheduledThreadPoolExecutor(10).execute(new AsyncService(asyncContext, isModifiedStorage));
+			 new AsyncService(asyncContext, isModifiedStorage).run();
 			asyncContext.complete();
 			storage.remove(asyncContext);
 		}
