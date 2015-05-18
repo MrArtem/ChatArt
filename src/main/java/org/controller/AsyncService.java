@@ -18,9 +18,9 @@ import static org.util.MessageUtil.*;
  */
 public class AsyncService implements Runnable {
     private AsyncContext aContext;
-    private int isModifiedStorage;
+    private Integer isModifiedStorage;
 
-    public AsyncService(AsyncContext aContext, int isModifiedStorage) {
+    public AsyncService(AsyncContext aContext, Integer isModifiedStorage) {
         this.aContext = aContext;
         this.isModifiedStorage = isModifiedStorage;
     }
@@ -34,6 +34,7 @@ public class AsyncService implements Runnable {
 
             if(isModifiedStorage != index || isModifiedStorage == 0) {
                 String messages = null;
+
                 try {
                     messages = formResponse(0);//all messages
                 } catch (Exception e) {

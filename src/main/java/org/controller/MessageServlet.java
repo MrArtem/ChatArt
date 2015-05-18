@@ -1,7 +1,6 @@
 package org.controller;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -30,7 +29,7 @@ import org.xml.sax.SAXException;
 
 import static org.util.MessageUtil.*;
 
-@WebServlet(value = "/chat", loadOnStartup = 1, asyncSupported=true)
+@WebServlet(urlPatterns = {"/chat"}, loadOnStartup = 1, asyncSupported=true)
 public class MessageServlet extends HttpServlet {     
 	private static final long serialVersionUID = 1L;
 	private static int ID;
@@ -73,11 +72,15 @@ public class MessageServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		logger.info("starte doPost");
 		String data = ServletUtil.getMessageBody(request);
+		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
+		storage.clear();
+		removeAsContext(aContext);
 		try {
 			JSONObject json = stringToJson(data);
 			InfoMessage message = jsonToMessages(json);
 			logger.info(message.toJSONString());
 			lock.lock();
+
 			try {
 				message.setID(ID++);
 				message.setRequst("POST");
@@ -85,10 +88,13 @@ public class MessageServlet extends HttpServlet {
 			} finally {
 				lock.unlock();
 			}
+
 			System.out.println(message.toJSONString());
 			logger.info("doPost has done.");
+
 			try {
 				XMLHistoryUtil.addData(message);
+
 			} catch (ParserConfigurationException e) {
 				logger.error(e);
 				e.printStackTrace();
@@ -103,8 +109,9 @@ public class MessageServlet extends HttpServlet {
 			System.err.println("Invalid user message: " + e.getMessage());
 			logger.error(e);
 		}
+
 	}
-	
+
 	/*@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String token = request.getParameter(TOKEN);
@@ -239,6 +246,7 @@ public class MessageServlet extends HttpServlet {
 
 		System.out.println("Async Servlet with thread: " + Thread.currentThread().toString());
 		final AsyncContext ac = request.startAsync();
+		ac.setTimeout(10*60*1000);
 		ac.addListener(new AsyncListener() {
 			public void onComplete(AsyncEvent event) throws IOException {
 				System.out.println("Async complete");
@@ -260,15 +268,27 @@ public class MessageServlet extends HttpServlet {
 
 			}
 		});
-		ScheduledThreadPoolExecutor executer = new ScheduledThreadPoolExecutor(10);
-		if(getIndex(request.getParameter(TOKEN)) != isModifiedStorage || getIndex(request.getParameter(TOKEN)) == isModifiedStorage) {
-			executer.execute(new AsyncService(ac, isModifiedStorage));
-		} else {
+		String token = request.getParameter(TOKEN);
+		int index = getIndex(token);
+		if(isModifiedStorage == index && isModifiedStorage != 0) {
 			storage.add(ac);
+		} else {
+			if(isModifiedStorage == 0) {
+				isModifiedStorage++;
+			}
+			new AsyncService(ac, isModifiedStorage).run();
 		}
 		System.out.println("Servlet completed request handling");
 	}
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		processRequest(request, response);
+	}
+	public void removeAsContext(Queue<AsyncContext> asyncContexts) {
+		for (AsyncContext asyncContext : asyncContexts) {
+			 new ScheduledThreadPoolExecutor(10).execute(new AsyncService(asyncContext, isModifiedStorage));
+			asyncContext.complete();
+			storage.remove(asyncContext);
+		}
 	}
 }

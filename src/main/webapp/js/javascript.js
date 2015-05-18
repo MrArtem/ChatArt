@@ -26,10 +26,10 @@ function run() {
     var appContainerEnterMessage = document.getElementById('sendText');
     var appContainerServer = document.getElementById('server');
 
-    restoreMessages();
+  //  restoreMessages();
     document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
-    updateMessages();
-
+   // updateMessages();
+    longPull();
     appContainerSend.addEventListener('click', delegateEventSend);
     appContainerDelete.addEventListener('click', delegateEventDelete);
     appContainerSelect.addEventListener('click', delegateEventSelect);
@@ -137,7 +137,7 @@ function storeInfoLogin(infoLogin) {
     }
     localStorage.setItem("Login info", JSON.stringify(infoLogin));
 }
-function restoreMessages(continueWith) {
+/*function restoreMessages(continueWith) {
     var url = appState.mainUrl + '?token=' + appState.token;
 
     get(url, function (responseText) {
@@ -175,7 +175,7 @@ function updateMessages(continueWith) {
         continueWith && continueWith();
     });
     setTimeout(updateMessages, 1000);
-}
+}*/
 function restoreLoginInfo() {
     if (typeof (Storage) == "undefined") {
         alert('local storage is not accessible');
@@ -334,9 +334,45 @@ function defaultErrorHandler(message) {
     $("#server").addClass('btn btn-danger');
 }
 
-function get(url, continueWith, continueWithError) {
-    ajax('GET', url, null, continueWith, continueWithError);
-}
+ function longPull(){
+     $.ajax({
+         type: "GET",
+         url: appState.mainUrl + '?token=' +appState.token,
+         success: function(responseText) {
+             console.assert(responseText != null);
+             delegateEventServer();
+             appState.token = responseText.token;
+             var response = responseText.messages;
+             for (var i = 0; i < response.length; i++) {
+                 var message = response[i];
+                 if (message.requst == "POST") {
+                     addAllMessages(message);
+                 }
+                 if (message.requst == "PUT") {
+                     addChangeMessage(message);
+                 }
+                 if (message.requst == "DELETE") {
+                     addDeleteMessage(message);
+                 }
+             }
+
+         },
+         error: function(e) {
+             if(e.statusText == "timeout") {
+                 delegateEventServer();
+             } else {
+                 defaultErrorHandler("error");
+             }
+         },
+         dataType: "json",
+         complete: longPull,
+         timeout: 30000
+     });
+ }
+
+//function get(url, continueWith, continueWithError) {
+  //  ajax('GET', url, null, continueWith, continueWithError);
+//}
 function post(url, data, continueWith, continueWithError) {
     ajax('POST', url, data, continueWith, continueWithError);
 }
