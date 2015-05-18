@@ -145,6 +145,9 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
+		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
+		storage.clear();
+		removeAsContext(aContext);
 		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
@@ -175,6 +178,9 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
 		String token = request.getParameter(TOKEN);
+		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
+		storage.clear();
+		removeAsContext(aContext);
 		logger.info("Delete");
 		if (token != null && !"".equals(token)) {
 			int index = getIndex(token);
@@ -273,10 +279,13 @@ public class MessageServlet extends HttpServlet {
 		if(isModifiedStorage == index && isModifiedStorage != 0) {
 			storage.add(ac);
 		} else {
-			if(isModifiedStorage == 0) {
+			if(index == 0 && isModifiedStorage == 0) {
 				isModifiedStorage++;
+				new AsyncService(ac, isModifiedStorage).run();
+			} else {
+				new AsyncService(ac, isModifiedStorage).run();
 			}
-			new AsyncService(ac, isModifiedStorage).run();
+
 		}
 		System.out.println("Servlet completed request handling");
 	}
