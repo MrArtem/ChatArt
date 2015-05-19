@@ -144,11 +144,13 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
 		String token = request.getParameter(TOKEN);
-
+System.out.println("1");
 		logger.info("Delete");
 		if (token != null && !"".equals(token)) {
+			System.out.println("2");
 			int index = getIndex(token);
 			try {
+				System.out.println("3");
 				XMLHistoryUtil.deleteDate(index);
 				isModifiedStorage++;
 				logger.info("delete "+index);
@@ -157,6 +159,7 @@ public class MessageServlet extends HttpServlet {
 				logger.error(e);
 			}
 		}
+		System.out.println("4");
 		removeAsContext();
 
 	}
@@ -217,6 +220,7 @@ public class MessageServlet extends HttpServlet {
 
 			}
 		});
+		System.out.println("6");
 		String token = request.getParameter(TOKEN);
 		int index = getIndex(token);
 		if(isModifiedStorage == index && isModifiedStorage != 0) {
@@ -236,10 +240,12 @@ public class MessageServlet extends HttpServlet {
 	}
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("5");
 		processRequest(request, response);
 	}
 	public void removeAsContext() {
 		for (AsyncContext asyncContext : storage) {
+			System.out.println("7");
 			 new AsyncService(asyncContext, isModifiedStorage).run();
 			asyncContext.complete();
 			storage.remove(asyncContext);
