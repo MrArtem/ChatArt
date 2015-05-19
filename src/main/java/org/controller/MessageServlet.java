@@ -72,8 +72,7 @@ public class MessageServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		logger.info("starte doPost");
 		String data = ServletUtil.getMessageBody(request);
-		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
-		removeAsContext();
+
 		try {
 			JSONObject json = stringToJson(data);
 			InfoMessage message = jsonToMessages(json);
@@ -108,7 +107,7 @@ public class MessageServlet extends HttpServlet {
 			System.err.println("Invalid user message: " + e.getMessage());
 			logger.error(e);
 		}
-
+		removeAsContext();
 	}
 
 	/*@Override
@@ -144,7 +143,7 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
-		removeAsContext();
+
 		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
@@ -171,12 +170,12 @@ public class MessageServlet extends HttpServlet {
 			e.printStackTrace();
 			logger.error(e);
 		}
+		removeAsContext();
 	}
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
 		String token = request.getParameter(TOKEN);
-		Queue<AsyncContext> aContext = new ConcurrentLinkedQueue<AsyncContext>(storage);
-		removeAsContext();
+
 		logger.info("Delete");
 		if (token != null && !"".equals(token)) {
 			int index = getIndex(token);
@@ -201,6 +200,7 @@ public class MessageServlet extends HttpServlet {
 				logger.error(e);
 			}
 		}
+		removeAsContext();
 
 	}
 	@SuppressWarnings("unchecked")
