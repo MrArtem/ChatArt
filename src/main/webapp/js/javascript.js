@@ -93,7 +93,8 @@ function delegateEventDelete(evtObj) {
     var index = document.getElementById("allMessages").selectedIndex;
     var select = document.getElementById("allMessages")[index];
 
-    deleteMessage(index, function () {
+    var deleteMess = messageOption(sendText.value, surname.value + " " + name.value, index);
+    deleteMessage(deleteMess, function () {
     });
     
     sendText.value = "";
@@ -174,7 +175,7 @@ function updateMessages(continueWith) {
 
         continueWith && continueWith();
     });
-    setTimeout(updateMessages, 30000);
+    setTimeout(updateMessages, 5000);
 }
 function restoreLoginInfo() {
     if (typeof (Storage) == "undefined") {
@@ -229,12 +230,9 @@ function changeMessages(changeMessage, continueWith) {
         updateMessages();
     });
 }
-function deleteMessage(index,continueWith) {
- var indexToken = index;
- var url = appState.mainUrl + '?token=' + "TN" +indexToken.toString() + "EN";
-    del(url, function () {
-
-     continueWith && continueWith();
+function deleteMessage(deleteMess,continueWith) {
+    del(appState.mainUrl, JSON.stringify(deleteMess), function () {
+        updateMessages();
     });
 }
 $(document).ready(function () {
@@ -379,8 +377,8 @@ function post(url, data, continueWith, continueWithError) {
 function put(url, data, continueWith, continueWithError) {
     ajax('PUT', url, data, continueWith, continueWithError);
 }
-function del(url, continueWith, continueWithError) {
-    ajax('DELETE', url, null, continueWith, continueWithError);
+function del(url, data,continueWith, continueWithError) {
+    ajax('DELETE', url, data, continueWith, continueWithError);
 }
 function isError(text) {
     if (text == "")

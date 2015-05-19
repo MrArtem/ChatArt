@@ -57,10 +57,10 @@ public class MessageServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		logger.info("starte doPost");
 		String data = ServletUtil.getMessageBody(request);
-
+		InfoMessage message  = null;
 		try {
 			JSONObject json = stringToJson(data);
-			InfoMessage message = jsonToMessages(json);
+			message = jsonToMessages(json);
 			logger.info(message.toJSONString());
 			lock.lock();
 
@@ -82,7 +82,7 @@ public class MessageServlet extends HttpServlet {
 		} catch (ParseException e) {
 			logger.error(e);
 		}
-		removeAsContext();
+		removeAsContext(message);
 	}
 
 	/*@Override
@@ -118,11 +118,11 @@ public class MessageServlet extends HttpServlet {
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
-
+		InfoMessage message = null;
 		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
-			InfoMessage message = jsonToMessages(json);
+			 message = jsonToMessages(json);
 			message.setRequst("PUT");
 			logger.info(message.toJSONString());
 			try {
@@ -139,28 +139,34 @@ public class MessageServlet extends HttpServlet {
 			e.printStackTrace();
 			logger.error(e);
 		}
-		removeAsContext();
+		removeAsContext(message);
 	}
 	@Override
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
-		String token = request.getParameter(TOKEN);
-System.out.println("1");
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String data = ServletUtil.getMessageBody(request);
+		InfoMessage message = null;
 		logger.info("Delete");
-		if (token != null && !"".equals(token)) {
-			System.out.println("2");
-			int index = getIndex(token);
+		if (data != null) {
+
+			JSONObject json = null;
 			try {
-				System.out.println("3");
-				XMLHistoryUtil.deleteDate(index);
+				json = stringToJson(data);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			 message = jsonToMessages(json);
+			message.setRequst("DELETE");
+			try {
+				XMLHistoryUtil.deleteDate(message.getID());
 				isModifiedStorage++;
-				logger.info("delete "+index);
+				logger.info("delete "+message.getID());
 			} catch (SAXException | IOException | TransformerException | XPathExpressionException | ParserConfigurationException e) {
 				e.printStackTrace();
 				logger.error(e);
 			}
 		}
 		System.out.println("4");
-		removeAsContext();
+		removeAsContext(message);
 
 	}
 	@SuppressWarnings("unchecked")
@@ -220,33 +226,24 @@ System.out.println("1");
 
 			}
 		});
-		System.out.println("6");
 		String token = request.getParameter(TOKEN);
 		int index = getIndex(token);
 		if(isModifiedStorage == index && isModifiedStorage != 0) {
 			storage.add(ac);
 		} else {
-			if(index == 0 && isModifiedStorage == 0) {
-				isModifiedStorage++;
-				new AsyncService(ac, isModifiedStorage).run();
+			isModifiedStorage++;
+				new AsyncService(ac, isModifiedStorage,null).run();
 				ac.complete();
-			} else {
-				new AsyncService(ac, isModifiedStorage).run();
-				ac.complete();
-			}
-
 		}
 		System.out.println("Servlet completed request handling");
 	}
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("5");
 		processRequest(request, response);
 	}
-	public void removeAsContext() {
+	public void removeAsContext(InfoMessage message) {
 		for (AsyncContext asyncContext : storage) {
-			System.out.println("7");
-			 new AsyncService(asyncContext, isModifiedStorage).run();
+			 new AsyncService(asyncContext, isModifiedStorage,message).run();
 			asyncContext.complete();
 			storage.remove(asyncContext);
 		}

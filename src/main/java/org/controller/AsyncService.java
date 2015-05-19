@@ -1,6 +1,7 @@
 package org.controller;
 
 import org.json.simple.JSONObject;
+import org.model.InfoMessage;
 import org.storage.xml.XMLHistoryUtil;
 import org.xml.sax.SAXException;
 
@@ -19,10 +20,12 @@ import static org.util.MessageUtil.*;
 public class AsyncService implements Runnable {
     private AsyncContext aContext;
     private Integer isModifiedStorage;
+    private InfoMessage message;
 
-    public AsyncService(AsyncContext aContext, Integer isModifiedStorage) {
+    public AsyncService(AsyncContext aContext, Integer isModifiedStorage, InfoMessage message) {
         this.aContext = aContext;
         this.isModifiedStorage = isModifiedStorage;
+        this.message = message;
     }
 
     public void run() {
@@ -32,7 +35,18 @@ public class AsyncService implements Runnable {
         if (token != null && !"".equals(token)) {
             int index = getIndex(token);
 
-            if(isModifiedStorage != index || isModifiedStorage == 0) {
+            if(message != null) {
+                try {
+                    out = aContext.getResponse().getWriter();
+                    out.print(message.toJSONString());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    out.close();
+                }
+            } else {
+
                 String messages = null;
 
                 try {
@@ -49,6 +63,7 @@ public class AsyncService implements Runnable {
                 } finally {
                     out.close();
                 }
+
             }
 
         }
