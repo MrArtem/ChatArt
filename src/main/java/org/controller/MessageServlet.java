@@ -31,7 +31,6 @@ import static org.util.MessageUtil.*;
 
 @WebServlet(urlPatterns = {"/chat"}, loadOnStartup = 1, asyncSupported=true)
 public class MessageServlet extends HttpServlet {     
-	private static final long serialVersionUID = 1L;
 	private static int ID;
 	private Lock lock = new ReentrantLock();
 	private int isModifiedStorage = 0;
@@ -44,27 +43,13 @@ public class MessageServlet extends HttpServlet {
 		logger.info("intit have done.");
 		try {
 			ID = XMLHistoryUtil.getStorageSize();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
 		}
 		try {
 			loadHistory();
-		} catch (SAXException e) {
+		} catch (SAXException | IOException | ParserConfigurationException | TransformerException e) {
 			logger.error(e);
-			System.err.print(e);
-		} catch (IOException e) {
-			logger.error(e);
-			System.err.print(e);
-		} catch (ParserConfigurationException e) {
-			logger.error(e);
-			System.err.print(e);
-		} catch (TransformerException e) {
-			logger.error(e);
-			System.err.print(e);
 		}
 	}
 	
@@ -86,25 +71,15 @@ public class MessageServlet extends HttpServlet {
 			} finally {
 				lock.unlock();
 			}
-
-			System.out.println(message.toJSONString());
 			logger.info("doPost has done.");
 
 			try {
 				XMLHistoryUtil.addData(message);
-
-			} catch (ParserConfigurationException e) {
-				logger.error(e);
-				e.printStackTrace();
-			} catch (SAXException e) {
-				logger.error(e);
-				e.printStackTrace();
-			} catch (TransformerException e) {
+			} catch (ParserConfigurationException | SAXException | TransformerException e) {
 				logger.error(e);
 				e.printStackTrace();
 			}
 		} catch (ParseException e) {
-			System.err.println("Invalid user message: " + e.getMessage());
 			logger.error(e);
 		}
 		removeAsContext();
@@ -156,13 +131,7 @@ public class MessageServlet extends HttpServlet {
 			} catch (ParserConfigurationException e) {
 				e.printStackTrace();
 				logger.error(e);
-			} catch (SAXException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (TransformerException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (XPathExpressionException e) {
+			} catch (SAXException | TransformerException | XPathExpressionException e) {
 				e.printStackTrace();
 				logger.error(e);
 			}
@@ -183,19 +152,7 @@ public class MessageServlet extends HttpServlet {
 				XMLHistoryUtil.deleteDate(index);
 				isModifiedStorage++;
 				logger.info("delete "+index);
-			} catch (ParserConfigurationException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (SAXException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (IOException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (TransformerException e) {
-				e.printStackTrace();
-				logger.error(e);
-			} catch (XPathExpressionException e) {
+			} catch (SAXException | IOException | TransformerException | XPathExpressionException | ParserConfigurationException e) {
 				e.printStackTrace();
 				logger.error(e);
 			}
@@ -224,16 +181,7 @@ public class MessageServlet extends HttpServlet {
 		for (InfoMessage task : stubTasks) {
 			try {
 				XMLHistoryUtil.addData(task);
-			} catch (ParserConfigurationException e) {
-				System.err.print(e);
-				logger.error(e);
-			} catch (SAXException e) {
-				System.err.print(e);
-				logger.error(e);
-			} catch (IOException e) {
-				System.err.print(e);
-				logger.error(e);
-			} catch (TransformerException e) {
+			}  catch (SAXException | IOException | TransformerException | ParserConfigurationException e) {
 				System.err.print(e);
 				logger.error(e);
 			}
@@ -241,7 +189,6 @@ public class MessageServlet extends HttpServlet {
 	}
 	@Override
 	public void destroy() {
-		System.out.print("Hi");
 		super.destroy();
 	}
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException {
