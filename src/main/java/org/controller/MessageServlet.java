@@ -45,8 +45,10 @@ public class MessageServlet extends HttpServlet {
 			ID = XMLHistoryUtil.getStorageSize();
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
+			logger.error(e);
 		}
 		try {
+			logger.info("started load histor to xml");
 			loadHistory();
 		} catch (SAXException | IOException | ParserConfigurationException | TransformerException e) {
 			logger.error(e);
@@ -82,6 +84,7 @@ public class MessageServlet extends HttpServlet {
 		} catch (ParseException e) {
 			logger.error(e);
 		}
+		logger.info("started answer for request");
 		removeAsContext(message);
 	}
 
@@ -124,7 +127,6 @@ public class MessageServlet extends HttpServlet {
 			JSONObject json = stringToJson(data);
 			message = jsonToMessages(json);
 			message.setRequst("PUT");
-			logger.info(message.toJSONString());
 			try {
 				XMLHistoryUtil.updateData(message);
 				isModifiedStorage++;
@@ -139,6 +141,7 @@ public class MessageServlet extends HttpServlet {
 			e.printStackTrace();
 			logger.error(e);
 		}
+		logger.info("started answer for request");
 		removeAsContext(message);
 	}
 	@Override
@@ -165,7 +168,7 @@ public class MessageServlet extends HttpServlet {
 				logger.error(e);
 			}
 		}
-		System.out.println("4");
+		logger.info("started answer for request");
 		removeAsContext(message);
 
 	}
