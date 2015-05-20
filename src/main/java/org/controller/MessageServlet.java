@@ -122,7 +122,7 @@ public class MessageServlet extends HttpServlet {
 		logger.info("doPut");
 		try {
 			JSONObject json = stringToJson(data);
-			 message = jsonToMessages(json);
+			message = jsonToMessages(json);
 			message.setRequst("PUT");
 			logger.info(message.toJSONString());
 			try {
@@ -154,7 +154,7 @@ public class MessageServlet extends HttpServlet {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			 message = jsonToMessages(json);
+			message = jsonToMessages(json);
 			message.setRequst("DELETE");
 			try {
 				XMLHistoryUtil.deleteDate(message.getID());
@@ -231,7 +231,7 @@ public class MessageServlet extends HttpServlet {
 		if(isModifiedStorage == index && isModifiedStorage != 0) {
 			storage.add(ac);
 		} else {
-			isModifiedStorage++;
+			    isModifiedStorage++;
 				new AsyncService(ac, isModifiedStorage,null).run();
 				ac.complete();
 		}

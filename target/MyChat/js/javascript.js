@@ -158,21 +158,24 @@ function updateMessages(continueWith) {
     get(url, function (responseText) {
         console.assert(responseText != null);
         delegateEventServer();
-        appState.token = JSON.parse(responseText).token;
-        var response = JSON.parse(responseText).messages;
-        for (var i = 0; i < response.length; i++) {
-            var message = response[i];
-            if (message.requst == "POST") {
-                addAllMessages(message);
-            }
-            if (message.requst == "PUT") {
-                addChangeMessage(message);
-            }
-            if (message.requst == "DELETE") {
-                addDeleteMessage(message);
+        if(JSON.parse(responseText).token != null && JSON.parse(responseText).messages) {
+            appState.token = JSON.parse(responseText).token;
+            var response = JSON.parse(responseText).messages;
+        }
+        if(response != null) {
+            for (var i = 0; i < response.length; i++) {
+                var message = response[i];
+                if (message.requst == "POST") {
+                    addAllMessages(message);
+                }
+                if (message.requst == "PUT") {
+                    addChangeMessage(message);
+                }
+                if (message.requst == "DELETE") {
+                    addDeleteMessage(message);
+                }
             }
         }
-
         continueWith && continueWith();
     });
     setTimeout(updateMessages, 5000);
