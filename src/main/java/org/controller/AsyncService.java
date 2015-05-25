@@ -1,5 +1,7 @@
 package org.controller;
 
+import org.dao.MessageDao;
+import org.dao.MessageDaoImpl;
 import org.json.simple.JSONObject;
 import org.model.InfoMessage;
 import org.storage.xml.XMLHistoryUtil;
@@ -11,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import static org.util.MessageUtil.*;
 
@@ -21,11 +24,13 @@ public class AsyncService implements Runnable {
     private AsyncContext aContext;
     private Integer isModifiedStorage;
     private InfoMessage message;
+    private MessageDao messageDao;
 
     public AsyncService(AsyncContext aContext, Integer isModifiedStorage, InfoMessage message) {
         this.aContext = aContext;
         this.isModifiedStorage = isModifiedStorage;
         this.message = message;
+        this.messageDao = new MessageDaoImpl();
     }
 
     public void run() {
@@ -50,7 +55,7 @@ public class AsyncService implements Runnable {
                 String messages = null;
 
                 try {
-                    messages = formResponse(0);//all messages
+                    messages = formResponse();//all messages
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -68,9 +73,9 @@ public class AsyncService implements Runnable {
 
         }
     }
-    private String formResponse(int index) throws SAXException, IOException, ParserConfigurationException {
+    private String formResponse() throws SAXException, IOException, ParserConfigurationException {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(MESSAGES, XMLHistoryUtil.getSubTasksByIndex(index));
+        jsonObject.put(MESSAGES,  messageDao.selectAll());
         jsonObject.put(TOKEN, getToken(isModifiedStorage));
         return jsonObject.toJSONString();
     }

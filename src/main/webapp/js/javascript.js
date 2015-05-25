@@ -54,7 +54,7 @@ function delegateEventSend(evtObj) {
             storeMessages(sendMessage, function () {
                 document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
             });
-           
+
             text.value = "";
             var scrolbar = document.getElementById("allMessages");
             document.getElementById("allMessages").scrollTop = document.getElementById("allMessages").scrollHeight;
@@ -71,7 +71,7 @@ function delegateEventSend(evtObj) {
             var changeMessage = messageOption(sendText.value, surname.value + " " + name.value, index);
             changeMessages(changeMessage, function () {
             });
-           
+
             select.selected = false;
             sendText.value = null;
         }
@@ -96,7 +96,7 @@ function delegateEventDelete(evtObj) {
     var deleteMess = messageOption(sendText.value, surname.value + " " + name.value, index);
     deleteMessage(deleteMess, function () {
     });
-    
+
     sendText.value = "";
     select.selected = false;
 }
@@ -176,6 +176,7 @@ function updateMessages(continueWith) {
                 }
             }
         }
+
         continueWith && continueWith();
     });
     setTimeout(updateMessages, 30000);
