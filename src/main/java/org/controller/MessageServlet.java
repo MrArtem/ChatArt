@@ -1,6 +1,7 @@
 package org.controller;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -84,10 +85,10 @@ public class MessageServlet extends HttpServlet {
 			logger.error(e);
 		}
 		logger.info("started answer for request");
-		removeAsContext(message);
+		//removeAsContext(message);
 	}
 
-	/*@Override
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String token = request.getParameter(TOKEN);
 		logger.info("doGet");
@@ -116,7 +117,7 @@ public class MessageServlet extends HttpServlet {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "error");
 			logger.error(e);
 		}
-	}*/
+	}
 	@Override
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String data = ServletUtil.getMessageBody(request);
@@ -133,7 +134,7 @@ public class MessageServlet extends HttpServlet {
 			logger.error(e);
 		}
 		logger.info("started answer for request");
-		removeAsContext(message);
+		//removeAsContext(message);
 	}
 	@Override
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -151,24 +152,18 @@ public class MessageServlet extends HttpServlet {
 			message = jsonToMessages(json);
 			message.setRequst("DELETE");
 			message.setText("message has deleted.");
-			try {
-				XMLHistoryUtil.deleteDate(message.getID());
-				messageDao.update(message);
-				isModifiedStorage++;
-				logger.info("delete "+message.getID());
-			} catch (SAXException | IOException | TransformerException | XPathExpressionException | ParserConfigurationException e) {
-				e.printStackTrace();
-				logger.error(e);
-			}
+			messageDao.update(message);
+			isModifiedStorage++;
+			logger.info("delete "+message.getID());
 		}
 		logger.info("started answer for request");
-		removeAsContext(message);
+		//removeAsContext(message);
 
 	}
 	@SuppressWarnings("unchecked")
 	private String formResponse(int index) throws SAXException, IOException, ParserConfigurationException {
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put(MESSAGES, XMLHistoryUtil.getSubTasksByIndex(index));
+		jsonObject.put(MESSAGES,messageDao.selectAll());
 		jsonObject.put(TOKEN, getToken(isModifiedStorage));
 		return jsonObject.toJSONString();
 	}
@@ -196,7 +191,7 @@ public class MessageServlet extends HttpServlet {
 	public void destroy() {
 		super.destroy();
 	}
-	protected void processRequest(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException {
+/*	protected void processRequest(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException {
 
 		System.out.println("Async Servlet with thread: " + Thread.currentThread().toString());
 		final AsyncContext ac = request.startAsync();
@@ -243,5 +238,5 @@ public class MessageServlet extends HttpServlet {
 			asyncContext.complete();
 			storage.remove(asyncContext);
 		}
-	}
+	}*/
 }

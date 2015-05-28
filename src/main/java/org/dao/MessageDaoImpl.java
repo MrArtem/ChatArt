@@ -61,11 +61,13 @@ public class MessageDaoImpl implements MessageDao{
         PreparedStatement preparedStatement = null;
         try {
             connection = ConnectionManager.getConnection();
+            connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement("Update     messages SET text = ?, request = ? WHERE id = ?");
             preparedStatement.setString(1, message.getText());
             preparedStatement.setString(2, message.getRequst());
             preparedStatement.setInt(3, message.getID());
             preparedStatement.executeUpdate();
+            connection.commit();
         } catch (SQLException e) {
             logger.error(e);
         } finally {
