@@ -100,7 +100,7 @@ public class MessageServlet extends HttpServlet {
 					response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
 				} else {
 					String messages;
-					messages = formResponse(0);//all messages
+					messages = formResponse(0);
 					response.setContentType(ServletUtil.APPLICATION_JSON);
 					PrintWriter out = response.getWriter();
 					out.print(messages);
