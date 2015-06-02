@@ -3,6 +3,7 @@ package org.dao;
 import org.apache.log4j.Logger;
 import org.db.ConnectionManager;
 import org.model.InfoMessage;
+import sun.java2d.d3d.D3DRenderQueue;
 
 import javax.sound.midi.MidiDevice;
 import java.sql.*;
@@ -17,23 +18,24 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MessageDaoImpl implements MessageDao{
     private Logger logger = Logger.getLogger(MessageDaoImpl.class.getName());
     private Lock lock = new ReentrantLock();
+    private Object obj = new Object();
     @Override
     public void add(InfoMessage message) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
-            lock.lock();
-            connection = ConnectionManager.getConnection();
-            connection.setAutoCommit(false);
-            System.out.println(message.getID());
-            preparedStatement = connection.prepareStatement("INSERT INTO messages (id, text, name, request) VALUES (?, ?, ?, ?)");
-            preparedStatement.setInt(1, message.getID());
-            preparedStatement.setString(2, message.getText());
-            preparedStatement.setString(3, message.getNameUser());
-            preparedStatement.setString(4, message.getRequst());
-            preparedStatement.executeUpdate();
-            connection.commit();
-            lock.unlock();
+            synchronized (obj) {
+                connection = ConnectionManager.getConnection();
+                connection.setAutoCommit(false);
+                System.out.println(message.getID());
+                preparedStatement = connection.prepareStatement("INSERT INTO messages (id, text, name, request) VALUES (?, ?, ?, ?)");
+                preparedStatement.setInt(1, message.getID());
+                preparedStatement.setString(2, message.getText());
+                preparedStatement.setString(3, message.getNameUser());
+                preparedStatement.setString(4, message.getRequst());
+                preparedStatement.executeUpdate();
+                connection.commit();
+            }
         } catch (SQLException e) {
             connection.rollback();
             logger.error(e);
@@ -91,7 +93,35 @@ public class MessageDaoImpl implements MessageDao{
 
     @Override
     public void delete(InfoMessage message) {
-        throw new UnsupportedOperationException();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = ConnectionManager.getConnection();
+            connection.setAutoCommit(false);
+            preparedStatement = connection.prepareStatement("Update     messages SET text = ?, request = ? WHERE id = ?");
+            preparedStatement.setString(1, message.getText());
+            preparedStatement.setString(2, message.getRequst());
+            preparedStatement.setInt(3, message.getID());
+            preparedStatement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            logger.error(e);
+        } finally {
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (SQLException e) {
+                    logger.error(e);
+                }
+            }
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.error(e);
+                }
+            }
+        }
     }
 
     @Override

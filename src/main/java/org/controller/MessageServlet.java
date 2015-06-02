@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
@@ -39,7 +40,7 @@ public class MessageServlet extends HttpServlet {
 	private Lock lock = new ReentrantLock();
 	private int isModifiedStorage = 0;
 	private static Logger logger = Logger.getLogger(MessageServlet.class.getName());
-	private final static Queue<AsyncContext> storage = new ConcurrentLinkedQueue<AsyncContext>();
+	private final static Queue<AsyncContext> STORAGE = new ConcurrentLinkedQueue<AsyncContext>();
 	private MessageDao messageDao = new MessageDaoImpl();
 
 	@Override
@@ -53,6 +54,7 @@ public class MessageServlet extends HttpServlet {
 		} catch (SAXException | IOException | ParserConfigurationException | TransformerException e) {
 			logger.error(e);
 		}
+
 	}
 	
 	@Override
@@ -152,7 +154,8 @@ public class MessageServlet extends HttpServlet {
 			message = jsonToMessages(json);
 			message.setRequst("DELETE");
 			message.setText("message has deleted.");
-			messageDao.update(message);
+			message.setDelete(true);
+			messageDao.delete(message);
 			isModifiedStorage++;
 			logger.info("delete "+message.getID());
 		}
